@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block main %}
+{% include 'nav.html' %}
+<body class="d-flex flex-column h-100">
+<div class="container mt-6 mb-3 bg-light h-75 d-flex flex-column">
+    <div class="h2 text-center">Cycles Decomposition</div>
+    <div class="download-border"></div>
+    <div class="input-group justify-content-center mb-4 mt-4 w-90 ml-auto mr-auto h-100 d-flex">
+        <div id="dashboard" class="dashboard d-flex flex-column align-items-center justify-content-center">
+            <h5 class="text-muted font-italic">Upload your decomposition file here.</h5>
+            <label for="decomp-upload-file" id="decomp-upload-file-label" class="text-center d-block"><span>Choose a file</span> or drag it here. (Only TXT)</label>
+            <input type="file" id="decomp-upload-file" class="d-none" name="file"/>
+        </div>
+    </div>
+    <div class="download-border mb-3"></div>   
+</div>
+
+{% include 'footer.html' %}
+</body>
+
+<script>
+	
+$(document).ready(function () {
+    $("#dashboard").on("dragover", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    })
+    $("#dashboard").on("dragenter", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    })
+    $("#dashboard").on("drop", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.files.length) {
+            e.preventDefault();
+            e.stopPropagation();
+            var file = e.originalEvent.dataTransfer.files;
+            if(!validateFile(file[0])){
+            alert("Only TXT file allowed.");
+            return false;
+            }
+            var fileSize = file[0].size;
+            var formData = new FormData();
+            if (fileSize == 0) {
+                alert("File cannot be empty!");
+                return false;
+            }
+            formData.append('file', file[0]);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            $.ajax({
+                url: '/ajax_uplaod/',
+                data: formData,
+                type: 'POST',
+                dataType: 'json',
+                enctype: 'multipart/form-data',
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (data) {
+                    if (data.flag === false) {
+                        alert("Something's wrong with the file.");
+                    }
+                    else{
+                    window.location.replace(data.url);
+                        }
+                    },
+                    });
+        }
+    })
+    $("#decomp-upload-file").on("change", function () {
+        var file = this.files[0];
+        var fileSize = file.size;
+        if (fileSize == 0) {
+            alert("File cannot be empty!");
+            return false;
+        }
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        if(!validateFile(file)){
+            alert("Only TXT file allowed.");
+            return false;
+        }
+        $.ajax({
+            url: '/ajax_uplaod/',
+            data: formData,
+            type: 'POST',
+            dataType: 'json',
+            enctype: 'multipart/form-data',
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (data) {
+            if (data.flag === false) {
+                alert("Something's wrong with the file.");
+            }
+            else{
+            window.location.replace(data.url);
+                }},
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                var html = "<span>" + "Status: " + textStatus +", Error: " + errorThrown + "</span>" ;
+                $("#decomp-upload-file").prop("disabled", false);
+                $("#decomp-upload-file-label").html(html);
+            }
+                });
+    })
+    $(document).ajaxStart(function () {
+        var html = "<span>Processing...</span>";
+        $("#decomp-upload-file").prop("disabled", true);
+        $("#decomp-upload-file-label").html(html);
+    });
+    $(document).ajaxComplete(function () {
+        $("#decomp-upload-file").prop("disabled", false);       
+        var html = "<span>Choose a file</span> or drag it here. (Only TXT)";
+        $("#decomp-upload-file-label").html(html);
+    })
+    $("#decomposition").addClass("active");
+})
+function validateFile(file) {
+    var fileName = file.name;
+    var pos = fileName.lastIndexOf(".");
+    var fileType = fileName.substring(pos+1);
+    var pat = /txt/i;
+    var result = pat.test(fileType);
+    return result;
+}
+</script>
+{% endblock main %}
+    

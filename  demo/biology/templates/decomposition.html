@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block main %}
+{% include 'nav.html' %}
+<body class="d-flex flex-column min-h-100">
+<div class="container mt-6 mb-3 bg-light">
+    <div class="h2 text-center">Cycles Decomposition</div>
+    <div class="download-border"></div>
+    <div class="input-group justify-content-center mb-4 mt-4 w-90 ml-auto mr-auto">
+        <div class="h5 input-group-element align-self-center">
+            Results of ' {{file.decomp_file_name|safe}}'
+        </div>
+    </div>
+    <div class="mt-2 mb-2 text-center">
+        <a class="btn btn-outline-dark btn-sm ml-2 mr-2" href="{% url 'decomp_visualisation' file.decomp_file_id%}">
+            <span class="oi oi-magnifying-glass"></span>
+            Search
+        </a>
+        <a class="btn btn-outline-dark btn-sm ml-2 mr-2" href="{% url 'search' file.decomp_file_id%}?name=&lower=&upper=">
+            <span class="oi oi-zoom-in"></span>            
+            View all the results
+        </a>
+    </div>
+    <div class="download-border"></div>
+    <div class="d-flex flex-column w-100 mt-4">
+        <div class="text-center h5">Top 10 cycles with the biggest values</div>
+        <table class="table table-striped table-hover table-responsive-sm">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Cycle</th>
+                    <th scope="col">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                {% for line in lines %}
+                <tr>
+                    <td scope="row">{{forloop.counter}}</td>
+                    <td class="decomp-zoom-in">
+                        <p>#{{line.cycle.0}}<p>
+                        <div style="display: none">
+                                {% for e in line.cycle %}
+                                    <span>
+                                        {{e}}
+                                        {% if not forloop.last %}
+                                        -->
+                                        {% else %}
+                                        <span class="oi oi-loop-square"></span>
+                                        {% endif %}
+                                        
+                                    </span>
+                                {% endfor %}
+                        </div>
+                    </td>
+                    <td>{{line.value}}</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+{% include 'footer.html' %}
+</body>
+
+<script>
+$(document).ready(function () {
+    $("#decomposition").addClass("active");
+    $("tr td:nth-child(2)").click(function () { 
+        $(this).children("div").toggle('fast', function () {
+            $("tr td:nth-child(2)").toggleClass('decomp-zoom-in decomp-zoom-out');});
+    });
+})
+</script>
+{% endblock main %}
+    

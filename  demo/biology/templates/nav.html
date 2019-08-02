@@ -1,0 +1,80 @@
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top" role="navigation">
+	<button class="navbar-toggler" data-toggle="collapse" data-target="#navbar-content">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="collapse navbar-collapse" id="navbar-content">
+		<ul class="navbar-nav d-flex w-100">
+			<li class="nav-item pr-2 pl-2">
+				<a class="nav-link" href="{% url 'home' %}" id="home">
+					<span class="oi oi-home"></span>
+					Home
+				</a>
+			</li>
+			
+			{% if file.hash_id %}				
+			<li class="nav-item dropdown pr-2 pl-2">
+				<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" id="flux">
+						<span class="oi oi-fork"></span>
+						FBA
+					</a>
+				<div class="dropdown-menu dropdown-primary">
+				<a class="dropdown-item" href="{% url 'download' file.hash_id%}">Download</a>
+				<div class="dropdown-divider"></div>
+				<a class="dropdown-item" href="{% url 'download_content' file.hash_id 'txt' %}">Download TXT</a>
+				<a class="dropdown-item" href="{% url 'download_content' file.hash_id 'csv' %}">Download CSV</a>
+				</div>
+			</li>
+			{% endif %}
+
+			
+			<li class="nav-item dropdown pr-2 pl-2">
+					<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" id="decomposition">
+						<span class="oi oi-loop-circular"></span>
+						Cycles
+					</a>
+
+					<div class="dropdown-menu dropdown-primary">
+					<a href="{% url 'decomp_scripts' %}" class="dropdown-item">Scripts</a>
+					<div class="dropdown-divider"></div>
+					<a href="{% url 'decomp_upload' %}" class="dropdown-item">Upload</a>	
+
+					{% if file.decomp_file_id %}
+					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" href="{% url 'decomp_results' file.decomp_file_id%}">
+						Results
+					</a>
+					<div class="dropdown-divider"></div>
+					<a class="dropdown-item" href="{% url 'decomp_visualisation' file.decomp_file_id%}">Visualisation</a>
+					{% endif %}
+
+					</div>
+			</li>
+			<li class="nav-item pr-2 pl-2">
+					<a href="{% url 'guidance' %}" class="nav-link" id="help">
+						<span class="oi oi-question-mark"></span>
+						Guidance
+					</a>
+			</li>
+			
+			{% if file.file_name or file.decomp_file_name %}
+								
+			<li class="nav-item dropdown pr-2 pl-2 ml-auto mr-5">
+				<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button">
+						<span class="oi oi-clipboard"></span>
+						Current File
+					</a>
+				<div class="dropdown-menu dropdown-primary" id="current-file">
+			
+			{% if file.file_name %}
+				<span class="dropdown-item">{{file.file_name}}</span>
+			{% elif file.decomp_file_name %}
+				<span class="dropdown-item">{{file.decomp_file_name}}</span>
+			{% endif %}
+
+				</div>
+			</li>
+			{% endif %}
+
+			</ul>
+		</div>
+</nav>	

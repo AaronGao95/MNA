@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "/Applications/anaconda3/envs/python37/bin/python",
+    "python.linting.flake8Enabled": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "liveServer.settings.multiRootWorkspaceName": "Site"
+}

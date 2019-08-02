@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<body class="d-flex flex-column min-h-100" id="guidance-body">
+{% include 'nav.html' %}    
+<div class="clear-nav"></div>
+<div class="container-fluid d-flex pl-0 mb-4">
+    <div id="guidance-contents-list" class="pt-2">
+        <ul class="pl-0 list-items">
+            <ul class="pl-2 mt-4 mb-4"><a href="#">Overall</a></ul>
+            <ul class="pl-2 mt-4 mb-4">
+                <a href="#navigation">Navigation</a>
+                <li class="pl-3"><a href="#home">Home</a></li>
+                <li class="pl-3"><a href="#fba">FBA</a></li>
+                <li class="pl-3">
+                    <a href="#cycles">Cycles</a>
+                    <ul style="list-style: circle;">
+                        <li><a href="#scripts">Scripts</a></li>
+                        <li><a href="#upload">Upload</a></li>
+                        <li><a href="#results">Results</a></li>
+                        <li><a href="#visualisation">Visualisation</a></li>
+                    </ul>
+                </li>
+                <li class="pl-3"><a href="#current-file">Current File</a></li>
+            </ul>
+            <ul class="pl-2 mt-4 mb-4"><a href="#usage-logic">Usage Logic</a></ul>
+        </ul>
+    </div>
+    <div class="container mt-3" id="guidance-content">
+        <h2 class="text-center">Guidance</h2>
+        <div class="download-border mt-2 mb-2"></div>
+        <div id="overall" class="text-justify">
+            <h3>What you can do on this website</h3>
+            <p class="pl-4">
+                This website is designed for users who are studying metabolic networks.
+                On this website, you can run Flux Balance Analysis (FBA) based on condition LNA, you can implement decompositions of cycles in a network, 
+                and furthermore, you can view or download the figures of all cycles.
+            </p>
+        </div>
+        <div class="download-border mt-2 mb-2"></div>
+        <div id="navigation" class="text-justify">
+            <h3>Navigation</h3>
+            <div id="home" class="pl-4">
+                <h4>Home Page</h4>
+                <p>
+                    On the home page, you can upload the model on which needs to be implemented Flux Balance Analysis. 
+                    Please note that the model can only be in the format of <span class="strong-text">XML</span>. There are three growth conditions including "Autotropic", "Mixotropic" and "Heterotropic" can be selected. 
+                    In addition, the exchanges fluxes of ten types of elements, namely "External Acetate", "H", "H<sub>2</sub>O", "PI", "NH<sub>4</sub>", "NO<sub>3</sub>", "SO<sub>4</sub>" and "O<sub>2</sub>",
+                    can be set on demand. 
+                </p>
+                <p>
+                    After pressing the <span class="strong-text">"Proceed"</span> button, the FBA will be implemented automatically if the model is valid. 
+                </p>
+            </div>
+            <div class="guidance-nav-border mt-2 mb-2 ml-4"></div>
+            <div id="fba" class="pl-4">
+                <h4>FBA</h4>
+                <span class="text-muted font-italic">Please Note that this tag will only be displayed if you have successfully completed the whole procedure on Home page. </span>
+                <p>There are three buttons on FBA tag:</p>
+                    <ul>
+                        <li>
+                            <span class="font-italic font-weight-bold">Download</span>
+                            <p>By clicking this tag, the donwload page will be displayed.</p>
+                        </li>
+                        <li>
+                            <span class="font-italic font-weight-bold">Download TXT</span>
+                            <p>By clicking this tag, the FBA results of previous uploaded model will be produced in a <span class="strong-text">TXT</span> file, and you can download it to your computer.</p>
+                        </li>
+                        <li>
+                            <span class="font-italic font-weight-bold">Download CSV</span>
+                            <p>By clicking this tag, the FBA results of previous uploaded model will be produced in a <span class="strong-text">CSV</span> file, and you can download it to your computer.</p>
+                        </li>
+                    </ul>
+            </div>
+            <div class="guidance-nav-border mt-2 mb-2 ml-4"></div>
+            <div id="cycles" class="pl-4">
+                <h4>Cycles</h4>
+                <p>This tag is about networks decompositions and the visualisation of cycles. There are four children buttons under this tag:</p>
+                    <ul>
+                        <li id="scripts">
+                            <span class="font-italic font-weight-bold">Scripts</span>
+                            <p>
+                                By clicking this tag, a corresponding page will be displayed and on which you can download the decomposition scripts to detect (The results will be saved as a <span class="strong-text">TXT</span> file.).
+                                The reason why we don't run the cycles detection process on this website is that this process is time-consuming and resource-consuming, so it is more appropriate to execute the scripts on your computer instead. <br>
+                                Regarding the input of decomposition scripts, it will be produced based on the model you uploaded, and it can also be downloaded on this page. 
+                                But please note that you have to upload your model on the <span class="strong-text">Home Page</span> first.
+                            </p>
+                            <div id="scripts-guidance">
+                                <span class="font-italic strong-text">How to use the scripts?</span><br>
+                                <ul style="list-style: circle;">
+                                    <li>
+                                        <p class="font-weight-bold">Step One: Install Perl</p>
+                                        <span>Open the terminal, check if Perl has been installed or not by following command:</span><br>
+                                        <div class="code">
+                                                <p>$ perl -v</p>
+                                                <p>This is perl 5, version 18, subversion 2 (v5.18.2) built for darwin-thread-multi-2level
+                                                (with 2 registered patches, see perl -V for more detail)</p>
+                                                <p>Copyright 1987-2013, Larry Wall</p>
+                                                <p>......</p>
+                                        </div>
+                                        <div class="guidance-nav-border mt-2 mb-2"></div>
+                                        <p>If Perl is not installed, please refer to <a href="https://www.perl.org/get.html">https://www.perl.org/get.html</a> to download and install the version that is applicable to your OS.</p>
+                                    </li>
+                                    <li>
+                                        <p class="font-weight-bold">Step Two: Adjust Arguments</p>
+                                        <span>Before setting arguments of the scripts, you need to download the input of the scripts which is corresponding to your upload model.</span>
+                                        <a href="/decomp/scripts/">(Download Here)</a><br>
+                                        <div class="guidance-nav-border mt-2 mb-2"></div>
+                                        <span>
+                                                Please follow the following guidance.
+                                        </span>
+                                        <ul style="list-style: decimal;">
+                                            <li>
+                                                <p>Unpack the <a href="/decomp/scripts/">scripts</a> and put the input into the corresponding folder.</p>
+                                                For example, the input file corresponds to compartment u. What you should do is to move this file to this folder: <span class="strong-text">Decomposition_Scripts/compartments/u/lna/</span>. 
+                                            </li>
+                                            <li>
+                                                <p>Open <span class="strong-text">chlamy_decomposition_color_flux.02.pl</span> in the editor, and set the compartment argument.</p>
+                                                For example, if you want to run cycles decomposition for compartment u, you need to set the following argument in the editor. 
+                                                <div class="code">
+                                                    my $compartment = 'u';
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <p class="font-weight-bold">Step Three: Run The Scripts</p>
+                                        (i) Open the terminal and enter the path where <span class="strong-text">chlamy_decomposition_color_flux.02.pl</span> is.
+                                        <div class="code">$ cd /Users/username/Desktop/Decomposition_scripts</div>
+                                        (ii) Run the scripts.
+                                        <div class="code">$ perl chlamy_decomposition_color_flux.02.pl </div>
+                                    </li>
+                                    <li>
+                                        <p class="font-weight-bold">Step Four: See The Results</p>
+                                        For example, for compartment u, the result is named "chlamydomonas_lna.csv_cycles_fluxes.txt" in the following path:
+                                        <span class="strong-text">Decomposition_Scripts/compartments/u/lna/chlamydomonas_lna.csv_cycles_fluxes.txt</span>.
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li id="upload">
+                            <span class="font-italic font-weight-bold">Upload</span>
+                            <p>On this page, you can upload a cycles file <span class="strong-text">(TXT)</span>, which is the output of the scripts. After uploading this file, you can view and search all the cycles, or you can view and download the figures of all cycles on the other pages.</p>
+                        </li>
+                        <li id="results">
+                            <span class="font-italic font-weight-bold">Results</span><br>
+                            <span class="font-italic text-muted">Please note that this tag will only be displayed if you have successfully uploaded the cycles file on the <span class="strong-text">Upload</span> page.</span>
+                            <p>
+                                On this page, you can view top ten cycles with biggest values (If the number of cycles is less than ten, all cycles will be displayed in descending order). 
+                                In addition, you can search cycles or view all cycles by clicking corresponding buttons.
+                            </p>
+                        </li>
+                        <li id="visualisation">
+                            <span class="font-italic font-weight-bold">visualisation</span><br>
+                            <span class="font-italic text-muted">Please note that this tag will only be displayed if you have successfully uploaded the cycles file on the <span class="strong-text">Upload</span> page.</span>
+                            <p>
+                                On this page, you can view or download the figures of top ten cycles with biggest values (All cycles if the number of cycles is less than ten). <br>
+                                Furthermore, you can search cycles by the element(s) name(s) in a cycle, or via giving the range of the mass flux value of a cycle. Leave all search panels <span class="strong-text">empty</span> or click the <span class="strong-text">"View all results"</span> button if you want to view all cycles. 
+                                And of course, you can view or download the figures of every cycle returned by search.
+                            </p>
+                        </li>
+                        <li id="current-file">
+                            <span class="font-italic font-weight-bold">Current File</span>
+                            <p>
+                                This tag indicates: <br>
+                                <span class="pl-4">1. The uploaded <span class="strong-text">model</span> on: <span class="strong-text">Home</span> page; <span class="strong-text">FBA</span> page; <span class="strong-text">Upload</span> page under <span class="strong-text">Cycles</span> tag.</span><br>
+                                <span class="pl-4">2. The uploaded <span class="strong-text">cycles file</span> on: <span class="strong-text">Results</span> & <span class="strong-text">Visualisation</span> page under <span class="strong-text">Cycles</span> tag.</span>
+                            </p>
+                        </the>
+                    </ul>
+            </div>
+        </div>
+        <div class="download-border mt-2 mb-2"></div>
+        <div id="usage-logic" class="text-justify">
+            <h3>Usage Logic</h3>
+            <div class="d-flex justify-content-center flex-column align-items-center">
+                <p>Upload model & set corresponding arguments on <span class="strong-text">Home</span> page.</p>
+                <p><span class="oi oi-arrow-thick-bottom"></span></p>
+                <p>(Optional) Download FBA results on <span class="strong-text">FBA</span> page.</p>
+                <p><span class="oi oi-arrow-thick-bottom"></span></p>
+                <p>Download the scripts and the scripts input on <span class="strong-text">Scripts</span> page under <span class="strong-text">Cycles</span> tag.</p>
+                <p><span class="oi oi-arrow-thick-bottom"></span></p>
+                <p>Run the scripts on your machine. <a class="font-italic strong-text" href="#scripts">(How to run the scripts)</a></p>
+                <p><span class="oi oi-arrow-thick-bottom"></span></p>
+                <p>Upload scripts output file on <span class="strong-text">Upload</span> page under <span class="strong-text">Cycles</span> tag.</p>
+                <p><span class="oi oi-arrow-thick-bottom"></span></p>
+                <p>View top ten cycles on <span class="strong-text">Results</span> page under <span class="strong-text">Cycles</span> tag.</p>
+                <p>Or</p>
+                <p>Search cycles or view, download the figures of cycles on <span class="strong-text">Visualisation</span> page under <span class="strong-text">Cycles</span> tag.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'footer.html' %}    
+</body>
+
+<script>
+$("#help").addClass('active');
+</script>
+{% endblock main %}

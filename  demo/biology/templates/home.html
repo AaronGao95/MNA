@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block main %}
+{% include 'nav.html' %}
+<body class="d-flex flex-column min-h-100">
+<div class="container mt-6 w-100" >
+    <form method="POST" enctype="multipart/form-data" action="{% url 'home'%}" id='inputForm' onsubmit="return validateFile();">
+        {%csrf_token%}
+
+        <div class="form-group">
+            <div class="custom-file">
+                <!-- <input type="file" class="custom-file-input" id="customFile" name="InputFile"/>
+                <label class="custom-file-label" for="customFile">Select file</label> -->
+                {{form.file}}
+                <!-- {{form.errors.file.0}} -->
+                <label for="{{ form.file.id_for_label}}" class="custom-file-label">Select a File (XML Only)</label>
+            </div> 
+            <div class="alert alert-danger" id="myAlert">
+                <button class="close" type="button">&times;</button>
+                <strong>Error!</strong> Please select a <strong>XML</strong> as input!
+            </div>
+            
+            {% if exception %}
+            <div class="alert alert-danger" id="myExcAlert">
+                <button class="close" type="button">&times;</button>
+                <strong>Errors Occur When Processing This File</strong>
+            </div>
+            {% endif %}
+        </div>
+    <div>
+        <div class="form-group">
+            <div class="input-group" id="GC">
+                <div class="input-group-element flex-wrap">
+                    <div class="input-group-prepend" id="GC_label">
+                        <span class="input-group-text d-block text-center w-100">Growth Condition</span>
+                    </div>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-outline-dark active">
+                            <input type="radio" name="growthCondition" value="auto" autocomplete="off" checked> Autotrophic
+                        </label>
+                            <label class="btn btn-outline-dark">
+                            <input type="radio" name="growthCondition" value="mixo" autocomplete="off"> Mixotrophic
+                        </label>
+                        <label class="btn btn-outline-dark">
+                            <input type="radio" name="growthCondition" value="hetero" autocomplete="off"> Heterotrophic
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="input-group mb-2">
+                <span class="note-head">The Exchange Fluxes</span>
+                <span class="note text-muted font-italic">Note: Positive and Negative values indicate Incoming and Outgoing flux respectively.</span>
+            </div>
+            <div class="input-group" id="flux-input">
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">External Acetate</span>
+                    </div>
+                    <input class="inputNum" type="number" name="ex_ac_lowerBound" min="-1000" step="0.001" value="0" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">H</span>
+                    </div>
+                    <input class="inputNum" type="number" name="h_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">H<sub>2</sub>O</span>
+                    </div>
+                    <input class="inputNum" type="number" name="h2o_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">PI</span>
+                    </div>
+                    <input class="inputNum" type="number" name="pi_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">NH<sub>4</sub></span>
+                    </div>
+                    <input class="inputNum" type="number" name="nh4_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">NO<sub>3</sub></span>
+                    </div>
+                    <input class="inputNum" type="number" name="no3_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">SO<sub>4</sub></span>
+                    </div>
+                    <input class="inputNum" type="number" name="so4_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+                <div class="input-group-element">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">O<sub>2</sub></span>
+                    </div>
+                    <input class="inputNum" type="number" name="o2_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="form-group">
+            <label class="border-right border-secondary" id="labelFile">Save Results As</label>
+            <input name="saveFile" data-size="xs" type="checkbox" data-toggle="toggle" data-onstyle="primary" 
+            data-on="TXT" data-off="CSV" data-onstyle="primary" data-offstyle="success" checked>
+        </div> -->
+        <div class="d-flex mb-2 mt-5 justify-content-end">
+            <button type="submit" class="btn btn-uom" id="submitBtn">
+                <span class="oi oi-play-circle"></span>
+                Proceed
+            </button>
+        </div>
+    </div>
+    </form>
+</div>
+{% include 'footer.html' %}
+
+</body>
+<script>
+    $(document).ready(function () {
+        //get the file name
+        var fileName = $('#customFile').val();
+        //replace the "Select a file" label
+        if (fileName == '' || fileName == null){
+            $('#customFile').next('.custom-file-label').text('Select a File (XML Only)');
+            
+        }else{
+            fileName = fileName.split("\\").pop();
+            $('#customFile').next('.custom-file-label').text(fileName);
+        }
+        $('#customFile').on('change',function(){
+            //get the file name
+            var fileName = $(this).val();
+            //replace the "Select a file" label
+            if (fileName == '' || fileName == null){
+                $(this).next('.custom-file-label').text('Select a File');
+                
+            }else{
+                fileName = fileName.split("\\").pop();
+                $(this).next('.custom-file-label').text(fileName);
+            }
+        })
+        $("#home").addClass("active");
+    });
+
+    $(document).ready(function () {
+        // hide the alert
+        $("#myAlert button").click(function () {
+            $("#myAlert").hide('fast');
+        });
+
+        if($("#myExcAlert").length){
+            $("#myExcAlert button").click(function () {
+                $("#myExcAlert").hide('fast');
+        });}
+        // end
+    });
+    //sumbit form by clicking enter
+    $(window).keydown(function (e) { 
+        var key = e.which;
+        if (key == 13) {
+            $('#submitBtn').click();
+        }
+    });
+    //end
+    
+    function validateFile() {
+        //validate numeric inputs
+        var nums = document.getElementsByClassName('inputNum');
+            for (i=0; i < nums.length; i++){
+                if (nums[i].value == ''){
+                    alert('Input cannot be empty!');
+                    return false;
+                }
+            }
+        //end
+        var x = document.getElementById("customFile").value;
+        var myAlert = document.getElementById("myAlert");
+        if (x == '' || x == undefined){
+            myAlert.style.display = 'block';
+            return false;
+        }
+        var pos = x.lastIndexOf(".");
+        var file_type = x.substring(pos+1);
+        var pat = /xml/i;
+        var result = pat.test(file_type);
+        if (!result){
+            myAlert.style.display = 'block';
+        }else{
+            var form = document.getElementById("inputForm");
+            var myExcAlert = document.getElementById("myExcAlert");
+            myAlert.firstElementChild.click();
+            if (myExcAlert != null){
+                myExcAlert.firstElementChild.click();
+            }
+            return;
+        }
+        return false;
+    }
+</script>
+{% endblock  %}

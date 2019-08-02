@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block main %}
+    
+<body class="d-flex flex-column min-h-100">
+{% include 'nav.html' %}
+<div class="clear-nav"></div>
+<div class="container bg-light mt-3 mb-3 min-h-70vh">
+    <div class="text-center h2">Scripts</div>
+    <div class="download-border"></div>
+    <div class="mb-4 mt-4 w-90 ml-auto mr-auto">
+            <!-- <div class="align-items-center input-group-element h4 flex-grow">
+                    <span class="oi oi-document"></span>
+                    <span class="ml-2 mr-3">Cycles Decomposition</span>
+                    <span class="oi oi-arrow-right"></span>
+            </div> -->
+        <div class="input-group pt-4 pb-4 row">
+            <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 input-group-element pt-3 pb-3 align-items-center">
+                <h4 class="strong-text">Download Scripts</h4>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 input-group-element pt-3 pb-3 scripts-download-group">
+                <a class="btn btn-primary btn-lg w-100" href="{% url 'download_scripts' 0 %}">
+                    <span class="oi oi-cloud-download"></span>
+                    MacOS/Linux
+                </a>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 input-group-element pt-3 pb-3 scripts-download-group">
+                <a class="btn btn-danger btn-lg w-100" href="{% url 'download_scripts' 1 %}">
+                    <span class="oi oi-cloud-download"></span>
+                    Windows
+                </a>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 input-group-element pt-3 pb-3 text-center align-items-center">
+                <a class="text-muted font-weight-bold font-italic" href="{% url 'guidance' %}#scripts">
+                    How to use the scripts?
+                </a>
+            </div>
+        </div>
+        <div class="guidance-nav-border mt-2 mb-2"></div>
+        <div class="input-group pt-4 pb-4 row">
+               {% if file.hash_id %}
+               <div class="col-12 input-group-element pt-3 pb-3 h4">
+                    <span class="d-block strong-text">Generate input file of the Scripts from&nbsp;</span>
+                    <span class="d-block font-weight-bold">' {{file.file_name}} '</span>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 input-group-element pt-3 pb-3">
+                    <button class="btn btn-uom btn-lg w-100 scripts-download-group" id="generate">
+                        <span class="oi oi-cloud-download"></span>
+                        Generate & Download
+                    </button>
+                </div>
+                <div class="col-xl-7 col-lg-7 col-md-7 col-sm-12 input-group-element pt-3 pb-3 align-items-center">
+                    <form method="GET" id="compartments-form" class="h5 mb-0">
+                        <label for="compartments">Compartments</label>
+                        <select name="compartments" id="compartments">
+                            <option value="u" selected>u</option>
+                            <option value="h">h</option>
+                            <option value="m">m</option>
+                            <option value="c">c</option>
+                        </select>
+                    </form>
+                </div>
+                {% else %}
+                <div class="col-7 input-group-element pt-3 pb-3 h4 d-flex flex-column">
+                    <span class="d-block font-weight-bold text-danger">No model uploaded</span>
+                    <span class="font-weight-bold d-block">Can not generate the input file of the Scripts&nbsp;</span>
+                </div>
+                <div class="col-3 input-group-element d-flex mb-auto mt-auto">
+                    <a href="{% url 'home' %}" class="btn btn-lg btn-danger scripts-download-group">Upload Now</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    <div class="download-border mb-3"></div>
+</div>
+{% include 'footer.html' %}
+</body>
+
+<script>
+$(document).ready(function () {
+    $("#decomposition").addClass("active");
+    $("#generate").click(function () {
+        var hash_id = $.cookie("hash_id");
+        if (hash_id === null || hash_id === undefined) {
+            window.location.replace("/");            
+        }else{
+            url = "/generate_input/" + hash_id.toString() + "\/";
+            var form = $("#compartments-form");
+            form.attr("action", url);
+            form[0].submit();
+        }
+    })
+});
+</script>
+
+{% endblock main %}
