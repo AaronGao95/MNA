@@ -59,19 +59,24 @@
 			{% if file.file_name or file.decomp_file_name %}
 								
 			<li class="nav-item dropdown pr-2 pl-2 ml-auto mr-5">
+			{% if file.file_name %}
 				<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button">
 						<span class="oi oi-clipboard"></span>
-						Current File
+						Current Model
 					</a>
 				<div class="dropdown-menu dropdown-primary" id="current-file">
 			
-			{% if file.file_name %}
-				<span class="dropdown-item">{{file.file_name}}</span>
-			{% elif file.decomp_file_name %}
-				<span class="dropdown-item">{{file.decomp_file_name}}</span>
-			{% endif %}
-
+					<span class="dropdown-item">{{file.file_name}}</span>
 				</div>
+			{% elif file.decomp_file_name %}
+			<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button">
+					<span class="oi oi-clipboard"></span>
+					Current Cycles
+				</a>
+			<div class="dropdown-menu dropdown-primary" id="current-file">
+				<span class="dropdown-item">{{file.decomp_file_name}}</span>
+			</div>
+			{% endif %}
 			</li>
 			{% endif %}
 

@@ -398,7 +398,7 @@ def ajax_upload(request):
                         try:
                             line = line.strip()
                             line = line.split(b'/')
-                            element = line[0]
+                            element = line[0].decode('utf-8')
                             value = float(line[1])
                             ele_append(element)
                             val_append(value)
