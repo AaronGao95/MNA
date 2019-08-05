@@ -8,8 +8,7 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from wsgiref.util import FileWrapper
 from django.http import Http404
 from django.views import View
-sys.path.append("/Users/aarongao/Desktop/Master Project/Site/ demo")
-from ownPackages.opt import FileProcessing, md5File, md5String, GetImg_top_10, SearchImg, plot, GetScriptsInput
+from .functions import *
 from demo.settings import *
 import re, base64, json
 from django.core.files.images import ImageFile
@@ -49,16 +48,20 @@ def home(request):
             for i in inputs:
                 inputs_str = inputs_str + str(i) + '?'
             input_hash_id = md5String(str(inputs_str))
-            if not models.InputParams.objects.filter(input_hash_id=input_hash_id).exists():
+            if not models.InputParams.objects.filter(input_hash_id=input_hash_id).exists() \
+                or not models.DownloadFile.objects.filter(input_params_id=input_hash_id).exists():
                 input_obj = models.InputParams(upload_file_id=hash_id,GC=GC,EA=EA,H=H,H2O=H2O,PI=PI,NH4=NH4,NO3=NO3,SO4=SO4,O2=O2,\
                     input_hash_id=input_hash_id,upload_file_name=obj.file.name.split('/')[-1])
-                download_file_hash_id = md5String(input_hash_id+".txt")    
+                txt_file_hash_id = md5String(input_hash_id+".txt")   
+                csv_file_hash_id = md5String(input_hash_id+'.csv') 
                 # file processed by COBRA, save results as txt as default
                 params = {}
-                params['download_file_hash_id'] = download_file_hash_id
+                params['txt_file_hash_id'] = txt_file_hash_id
+                params['csv_file_hash_id'] = csv_file_hash_id
                 params['upload_file_obj'] = upload_file_obj
                 params['input_obj'] = input_obj
-                params['download_file_obj'] = models.DownloadFile(input_params_id=input_hash_id, download_file_hash_id=download_file_hash_id)
+                params['txt_file_obj'] = models.DownloadFile(input_params_id=input_hash_id, download_file_hash_id=txt_file_hash_id)
+                params['csv_file_obj'] = models.DownloadFile(input_params_id=input_hash_id, download_file_hash_id=csv_file_hash_id)
                 params['file_name'] = obj.file.name.split('/')[-1]
                 params['growth_condition'] = GC
                 params['ex_ac_lowerBound'] = EA
@@ -82,8 +85,8 @@ def home(request):
                 # end
 
             response = HttpResponseRedirect('/download/'+input_hash_id)
-            response.set_cookie('hash_id', input_hash_id, expires=60*60*24*7)
-            response.set_cookie('file_name', obj.file.name.split('/')[-1], expires=60*60*24*7)
+            response.set_cookie('hash_id', input_hash_id, expires=60*60*24*30)
+            response.set_cookie('file_name', obj.file.name.split('/')[-1], expires=60*60*24*30)
             context['file'] = {'hash_id':input_hash_id, 'file_name':obj.file.name}
             if cookie != None:
                 context["file"]['decomp_file_id'] = cookie["decomp_file_id"]
@@ -119,27 +122,27 @@ def download_content(request, input_hash_id, save_flag):
     obj = obj.first()
     params = {}
     download_obj = models.DownloadFile.objects.filter(download_file_hash_id=download_file_hash_id)
-    if not download_obj.exists():
-        upload_file_obj = obj.upload_file
-        params['upload_file_obj'] = upload_file_obj
-        params['input_obj'] = obj
-        params['download_file_hash_id'] = download_file_hash_id
-        params['download_file_obj'] = models.DownloadFile(input_params_id=obj.pk, download_file_hash_id=download_file_hash_id)
-        params['file_name'] = obj.upload_file_name
-        params['growth_condition'] = obj.GC
-        params['ex_ac_lowerBound'] = obj.EA
-        params['h_lowerBound'] = obj.H
-        params['h2o_lowerBound'] = obj.H2O
-        params['pi_lowerBound'] = obj.PI
-        params['nh4_lowerBound'] = obj.NH4
-        params['no3_lowerBound'] = obj.NO3
-        params['so4_lowerBound'] = obj.SO4
-        params['o2_lowerBound'] = obj.O2
-        process_status = FileProcessing(params, save_flag=save_flag)
-        if process_status == False:
-            form = models.UploadFileForm()
-            response = render(request, 'home.html', {'exception':True, 'form':form})
-            return response
+    # if not download_obj.exists():
+    #     upload_file_obj = obj.upload_file
+    #     params['upload_file_obj'] = upload_file_obj
+    #     params['input_obj'] = obj
+    #     params['download_file_hash_id'] = download_file_hash_id
+    #     params['download_file_obj'] = models.DownloadFile(input_params_id=obj.pk, download_file_hash_id=download_file_hash_id)
+    #     params['file_name'] = obj.upload_file_name
+    #     params['growth_condition'] = obj.GC
+    #     params['ex_ac_lowerBound'] = obj.EA
+    #     params['h_lowerBound'] = obj.H
+    #     params['h2o_lowerBound'] = obj.H2O
+    #     params['pi_lowerBound'] = obj.PI
+    #     params['nh4_lowerBound'] = obj.NH4
+    #     params['no3_lowerBound'] = obj.NO3
+    #     params['so4_lowerBound'] = obj.SO4
+    #     params['o2_lowerBound'] = obj.O2
+    #     process_status = FileProcessing(params, save_flag=save_flag)
+    #     if process_status == False:
+    #         form = models.UploadFileForm()
+    #         response = render(request, 'home.html', {'exception':True, 'form':form})
+    #         return response
     new_download_obj = models.DownloadFile.objects.filter(download_file_hash_id=download_file_hash_id).first()
     download_file = File(new_download_obj.download_file)
     response = FileResponse(download_file)
@@ -210,8 +213,9 @@ def visualisation(request, file_id):
         context["file"]['hash_id'] = cookie["hash_id"]
         context["file"]['file_name'] = None
     # return top 10 figures
-    GetImg_top_10(file_id)
-    context['imgs'] = models.CycleImg.objects.filter(file=file_id)
+    img_obj = models.CycleImg.objects.filter(file=file_id)
+    context['imgs'] = img_obj
+    GetImg_top_10(img_obj)
     # end
     return render(request, 'visualisation.html', context)
 
@@ -424,18 +428,19 @@ def ajax_upload(request):
         GetImg_top_10(file_id)    
         url = "/decomp/visualisation/"+str(file_id)
         response = JsonResponse({'url':url, 'flag':True})
-        response.set_cookie("decomp_file_id", str(file_id), expires=60*60*24*7)
-        response.set_cookie("decomp_file_name", file_name, expires=60*60*24*7)
+        response.set_cookie("decomp_file_id", str(file_id), expires=60*60*24*30)
+        response.set_cookie("decomp_file_name", file_name, expires=60*60*24*30)
     return response
 
 def download_scripts(request, os):
     # mac/linux os==0
     # windows os==1
+    import os as o
+    print(o.path.dirname(__file__))
     if int(os) == 0:
-        obj = models.DecompositionScripts.objects.get(id=1)
+        scripts = open("./static_files/Decomposition_Scripts_Windows.zip", "rb")
     else:
-        obj = models.DecompositionScripts.objects.get(id=2)        
-    scripts = File(obj.scripts)
+        scripts = open("./static_files/Decomposition_Scripts_Linux_Mac.zip", "rb")      
     response = FileResponse(scripts)
     response['Content-Type'] = 'application/zip' #设置头信息，告诉浏览器这是个文件
     Cont_Dis = 'attachment;filename=%s%s%s'%('Decomposition_Scripts', '.', 'zip')

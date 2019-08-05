@@ -7,6 +7,8 @@ from django.utils import timezone
 
 
 class UploadFile(models.Model):
+    class Meta:
+        verbose_name_plural='Uploaded_Model'
     def __str__(self):
         return self.file.name.split('/')[-1] + ";" +str(self.upload_time.strftime('%Y-%m-%d,%H:%m:%S'))
     file = models.FileField(upload_to="upload/%Y%m%d")
@@ -24,8 +26,10 @@ class UploadFileForm(ModelForm):
         }
 
 class InputParams(models.Model):
+    class Meta:
+        verbose_name_plural='FBA_Results'
     def __str__(self):
-        return "Input Parameters of " + self.upload_file_name
+        return "Inputs and FBA Results of " + self.upload_file_name
     GC = models.CharField(max_length=255)  
     EA = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
     H = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
@@ -51,6 +55,10 @@ class DownloadFile(models.Model):   # model of input file processed by COBRA
 #     instance.download_file.delete(False) 
 
 class DecompositionFile(models.Model):
+    class Meta:
+        verbose_name_plural='Uploaded_Decomposition_File'
+    def __str__(self):
+        return self.file_name
     file = models.FileField(upload_to="decomposition/%Y%m%d")
     file_id = models.CharField(max_length=255, primary_key=True)
     file_name = models.CharField(max_length=255)
@@ -63,12 +71,3 @@ class CycleImg(models.Model):
 # @receiver(post_delete, sender=CycleImg)
 # def img_delete(sender, instance, **kwargs):
 #     instance.img.delete(False) 
-
-class DecompReference(models.Model):
-    reference_file = models.FileField(upload_to="reference")
-# @receiver(post_delete, sender=DecompReference)
-# def reference_file_delete(self, sender, instance, **kwargs):
-#     instance.reference_file.delete(False) 
-
-class DecompositionScripts(models.Model):
-    scripts = models.FileField(upload_to="scripts")

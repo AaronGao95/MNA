@@ -1,5 +1,5 @@
 from django.contrib import admin
-from biology.models import UploadFile, DownloadFile, CycleImg, InputParams
+from biology.models import UploadFile, DownloadFile, CycleImg, InputParams, DecompositionFile
 
 # Register your models here.
 class InputParamsInline(admin.TabularInline):
@@ -27,11 +27,10 @@ class UploadFileAdmin(admin.ModelAdmin):
 class InputParamsAdmin(admin.ModelAdmin):
     inlines = [DownloadFileInline]
 
-class DownloadFileAdmin(admin.ModelAdmin):
-    fieldsets = (
-        ['Download File', {'fields':('download_file', 'upload_file')}],
-        ['Inputs', {'fields':('GC','EA','H','H2O','PI','NH4','NO3','SO4','O2')}]
-    )
+class DecompositionFileAdmin(admin.ModelAdmin):
+    inlines = [CycleImgInline]
+
 
 admin.site.register(UploadFile, UploadFileAdmin)
 admin.site.register(InputParams, InputParamsAdmin)
+admin.site.register(DecompositionFile, DecompositionFileAdmin)

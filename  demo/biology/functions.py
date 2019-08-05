@@ -23,8 +23,7 @@ def md5String(string):
     return m.hexdigest()
     
     
-def FileProcessing(parameters, save_flag="txt"):
-    file = False
+def FileProcessing(parameters):
     try:
         DW = 3e-11 # average dry weight of log phase chlamy cell = 48 pg (Mitchell 1992)
         CPerStarch300 = 1800 # derived from starch300 chemical formula
@@ -113,64 +112,76 @@ def FileProcessing(parameters, save_flag="txt"):
         status =  LNA_sol.status
         solution = LNA_sol.objective_value
         fluxes = LNA_sol.fluxes
-        file = BytesIO()
-        file.seek(0)    #locate to the head of the file
-        file.truncate() #delete the content in input file
-        if save_flag == 'txt':
-            try:
-                file.write(bytes("Input File:"+parameters['file_name']+'\n', "utf-8"))
-                file.write(bytes("------------------------------------------\n", "utf-8"))
-                file.write(bytes("Status: "+str(status)+"\n", "utf-8"))
-                file.write(bytes("------------------------------------------\n", "utf-8"))
-                file.write(bytes("Solution: "+str(solution)+"\n", "utf-8"))
-                file.write(bytes("------------------------------------------\n", "utf-8"))
+        
+        try:
+            file_txt = BytesIO()
+            file_csv = StringIO()
+            with file_txt, file_csv:
+                file_txt.seek(0)    #locate to the head of the file
+                file_csv.seek(0)
+
+                # initialise txt
+                file_txt.write(bytes("Input File:"+parameters['file_name']+'\n', "utf-8"))
+                file_txt.write(bytes("------------------------------------------\n", "utf-8"))
+                file_txt.write(bytes("Status: "+str(status)+"\n", "utf-8"))
+                file_txt.write(bytes("------------------------------------------\n", "utf-8"))
+                file_txt.write(bytes("Solution: "+str(solution)+"\n", "utf-8"))
+                file_txt.write(bytes("------------------------------------------\n", "utf-8"))
+                # end
+
+                # initialise csv
+                flux_index = []
+                flux_value = []
+                flux_index.append('Input_File')
+                flux_index.append('Status')
+                flux_index.append('Solution')
+                flux_index.append('')
+                flux_index.append('Reaction')
+                flux_value.append(parameters['file_name'])
+                flux_value.append(status)
+                flux_value.append(solution)
+                flux_value.append('')
+                flux_value.append('Flux_Value')
+                # end
+
                 for index in fluxes.index:
+                    # txt content
                     line = str(index) + ':' + str(fluxes[index]) + '\n'
                     line = bytes(line, "utf-8")
-                    file.write(line)
-            except Exception as exp:
-                print(exp)
-            file.seek(0)
-            download_file_hash_id = parameters['download_file_hash_id']
-            file_obj = File(file)
-        else:
-            flux_index = []
-            flux_value = []
-            flux_index.append('Input_File')
-            flux_index.append('Status')
-            flux_index.append('Solution')
-            flux_index.append('')
-            flux_index.append('Reaction')
-            flux_value.append(parameters['file_name'])
-            flux_value.append(status)
-            flux_value.append(solution)
-            flux_value.append('')
-            flux_value.append('Flux_Value')
-            for index in fluxes.index:
-                flux_index.append(index)
-                flux_value.append(fluxes[index])
-            data = pd.DataFrame({'index': flux_index, 'value': flux_value})
-            file = StringIO()
-            data.to_csv(file, index=False, header=False)   # save csv file to buffer
-            file.seek(0)
-            file_obj = File(file)
-            download_file_hash_id = parameters['download_file_hash_id']
-            # parameters['upload_file_obj'].save()
-            # parameters['input_obj'].save()
-            # parameters['download_file_obj'].download_file.save(download_file_hash_id+"."+save_flag, file_obj)
-            # parameters['download_file_obj'].save()
-        # save objects (if exist, will not update the database)
-        parameters['upload_file_obj'].save()
-        parameters['input_obj'].save()
-        parameters['download_file_obj'].download_file.save(download_file_hash_id+"."+save_flag, file_obj)
-        parameters['download_file_obj'].save()
+                    file_txt.write(line)
+                    # end
+
+                    # csv content
+                    flux_index.append(index)
+                    flux_value.append(fluxes[index])
+                    # end
+        
+                file_txt.seek(0)
+                txt_file_hash_id = parameters['txt_file_hash_id']
+                file_txt = File(file_txt)
+
+                data = pd.DataFrame({'index': flux_index, 'value': flux_value})
+                data.to_csv(file_csv, index=False, header=False)   # save csv file to buffer
+                file_csv.seek(0)
+                file_csv = File(file_csv)
+                csv_file_hash_id = parameters['csv_file_hash_id']
+                # save objects (if exist, will not update the database)
+                parameters['upload_file_obj'].save()
+                parameters['input_obj'].save()
+                # save txt into database
+                parameters['txt_file_obj'].download_file.save(txt_file_hash_id+"."+"txt", file_txt)
+                parameters['txt_file_obj'].save()
+                # save csv into database
+                parameters['csv_file_obj'].download_file.save(csv_file_hash_id+"."+"csv", file_csv)
+                parameters['csv_file_obj'].save()
+        except Exception as exp:
+            return False
+
         return True
     except Exception as e:
         print(e)
         return False
-    finally:
-        if file != False:
-            file.close()
+
 
 
 def GetImg_top_10(img_obj):
@@ -329,7 +340,7 @@ def SearchImg(name, obj, upper=float('nan'), lower=float('nan')):
     # plt.close()
     
 def GetScriptsInput(txt_obj, compartment="u"):
-    with models.DecompReference.objects.all().first().reference_file.open() as ref_file: # open reference file with "rb" in iobuffer
+    with open("./static_files/reference.csv", "rb") as ref_file: # open reference file with "rb" in iobuffer
         reference_df = pd.read_csv(ref_file)    # transform reference file into datafram
         txt_file = txt_obj.download_file
         count_line = 1  # reaction data starts with 7th line

@@ -26,7 +26,6 @@ urlpatterns = [
     url(r'^ajax_search/$(?i)', views.ajax_search, name="ajax_search"),
     url(r'^download-content/(?P<input_hash_id>.{32})/(?P<save_flag>(txt|csv))/$(?i)',views.download_content, name='download_content'),
     url(r'^decomp/results/(?P<file_id>.{32})$(?i)', views.decomposition, name='decomp_results'),
-    # url(r'^decomp/download/result/(?P<input_hash_id>.{32})$(?i)', views.decomp_download, name='decomp_download_result'),
     url(r'^decomp/visualisation/(?P<file_id>.{32})$(?i)', views.visualisation, name='decomp_visualisation'),
     url(r'^decomp/visualisation/download/(?P<img_id>.{34,})$(?i)', views.vis_download, name='visualisation_download'),
     url(r'^decomp/search/(?P<file_id>.{32})$(?i)', views.search, name='search'),
