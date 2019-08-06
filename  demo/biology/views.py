@@ -23,14 +23,31 @@ def home(request):
         form = models.UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             GC = str(request.POST.get("growthCondition"))
-            EA= float(request.POST.get("ex_ac_lowerBound"))
-            H = float(request.POST.get("h_lowerBound"))
-            H2O = float(request.POST.get("h2o_lowerBound"))
-            PI = float(request.POST.get("pi_lowerBound"))
-            NH4 = float(request.POST.get("nh4_lowerBound"))
-            NO3 = float(request.POST.get("no3_lowerBound"))
-            SO4= float(request.POST.get("so4_lowerBound"))
-            O2 = float(request.POST.get("o2_lowerBound"))
+            lower ={}
+            upper = {}
+            lower['AC'] = request.POST.get("ex_ac_lowerBound")
+            upper['AC']= request.POST.get("ex_ac_upperBound")
+            lower['H'] = request.POST.get("h_lowerBound")
+            upper['H'] = request.POST.get("h_upperBound")
+            lower['H2O'] = request.POST.get("h2o_lowerBound")
+            upper['H2O'] = request.POST.get("h2o_upperBound")
+            lower['PI'] = request.POST.get("pi_lowerBound")
+            upper['PI'] = request.POST.get("pi_upperBound")
+            lower['NH4'] = request.POST.get("nh4_lowerBound")
+            upper['NH4'] = request.POST.get("nh4_upperBound")
+            lower['NO3'] = request.POST.get("no3_lowerBound")
+            upper['NO3'] = request.POST.get("no3_upperBound")
+            lower['SO4'] = request.POST.get("so4_lowerBound")
+            upper['SO4']= request.POST.get("so4_upperBound")
+            lower['O2'] = request.POST.get("o2_lowerBound")
+            upper['O2'] = request.POST.get("o2_upperBound")
+            ex_fluxes = {}
+            for key in lower.keys():
+                if lower[key] == '':
+                    lower[key] = 'null'
+                if upper[key] == '':
+                    upper[key] = 'null'
+                ex_fluxes[key] = "{}{}{}".format(str(lower[key]),',',str(upper[key]))
             # upload file
             obj = form.save(commit=False)
             hash_id = md5File(obj.file)
@@ -43,14 +60,21 @@ def home(request):
             # upload file end
 
             # check the md5 of upload file and inputs exists or not
-            inputs = (hash_id,GC,EA,H,H2O,PI,NH4,NO3,SO4,O2)
-            inputs_str = ''
-            for i in inputs:
-                inputs_str = inputs_str + str(i) + '?'
+            inputs_str = hash_id + '?' + GC
+            for value in ex_fluxes.values():
+                inputs_str = inputs_str + '?' + value
             input_hash_id = md5String(str(inputs_str))
             if not models.InputParams.objects.filter(input_hash_id=input_hash_id).exists() \
                 or not models.DownloadFile.objects.filter(input_params_id=input_hash_id).exists():
-                input_obj = models.InputParams(upload_file_id=hash_id,GC=GC,EA=EA,H=H,H2O=H2O,PI=PI,NH4=NH4,NO3=NO3,SO4=SO4,O2=O2,\
+                EA=ex_fluxes['AC']
+                H=ex_fluxes['H']
+                H2O=ex_fluxes['H2O']
+                PI=ex_fluxes['PI']
+                NH4=ex_fluxes['NH4']
+                NO3=ex_fluxes['NO3']
+                SO4=ex_fluxes['SO4']
+                O2=ex_fluxes['O2']
+                input_obj = models.InputParams(upload_file_id=hash_id,GC=GC,EA=EA,H=H,H2O=H2O,PI=PI,NH4=NH4,NO3=NO3,O2=O2,SO4=SO4,\
                     input_hash_id=input_hash_id,upload_file_name=obj.file.name.split('/')[-1])
                 txt_file_hash_id = md5String(input_hash_id+".txt")   
                 csv_file_hash_id = md5String(input_hash_id+'.csv') 
@@ -64,14 +88,8 @@ def home(request):
                 params['csv_file_obj'] = models.DownloadFile(input_params_id=input_hash_id, download_file_hash_id=csv_file_hash_id)
                 params['file_name'] = obj.file.name.split('/')[-1]
                 params['growth_condition'] = GC
-                params['ex_ac_lowerBound'] = EA
-                params['h_lowerBound'] = H
-                params['h2o_lowerBound'] = H2O
-                params['pi_lowerBound'] = PI
-                params['nh4_lowerBound'] = NH4
-                params['no3_lowerBound'] = NO3
-                params['so4_lowerBound'] = SO4
-                params['o2_lowerBound'] = O2
+                params['lower'] = lower
+                params['upper'] = upper
 
                 status = FileProcessing(params) # download_obj will be saved in this function
                 if status == False:
@@ -319,6 +337,11 @@ def generate_input(request, input_hash_id):
 
 
 def handler_404(request):
+    cookie = get_cookie(request)
+    context = {'file':{}}
+    if cookie != None:
+        context["file"]['hash_id'] = cookie["hash_id"]
+        context["file"]['decomp_file_id'] = cookie["decomp_file_id"]
     return render(request, '404.html')
 
 def ajax_search(request):

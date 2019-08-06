@@ -69,16 +69,31 @@ def FileProcessing(parameters):
         model.reactions.get_by_id("PRISM_design_growth").upper_bound = 10
         model.reactions.get_by_id("PRISM_design_growth").lower_bound = 10
 
-        model.reactions.get_by_id("EX_h_LPAREN_e_RPAREN_").lower_bound = -parameters['h_lowerBound']
-        model.reactions.get_by_id("EX_h2o_LPAREN_e_RPAREN_").lower_bound = -parameters['h2o_lowerBound']
-        model.reactions.get_by_id("EX_pi_LPAREN_e_RPAREN_").lower_bound = -parameters['pi_lowerBound']
-        model.reactions.get_by_id("EX_nh4_LPAREN_e_RPAREN_").lower_bound = -parameters['nh4_lowerBound']
-        model.reactions.get_by_id("EX_no3_LPAREN_e_RPAREN_").lower_bound = -parameters['no3_lowerBound']
-        model.reactions.get_by_id("EX_so4_LPAREN_e_RPAREN_").lower_bound = -parameters['so4_lowerBound']
-        model.reactions.get_by_id("EX_o2_LPAREN_e_RPAREN_").lower_bound = -parameters['o2_lowerBound']
+        id_head = "EX_"
+        id_tail = "_LPAREN_e_RPAREN_"
 
-        model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").lower_bound = -parameters['ex_ac_lowerBound']
-        model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").upper_bound = 0
+          
+        for key, lower_value in parameters['lower'].items():
+            id = id_head + key.lower() + id_tail
+            if lower_value != 'null':
+                lower_value = float(lower_value)
+                model.reactions.get_by_id(id).lower_bound = lower_value
+            upper_value = parameters['upper'][key]
+            if upper_value != 'null':
+                upper_value = float(upper_value)
+                model.reactions.get_by_id(id).upper_bound = upper_value
+
+            # model.reactions.get_by_id("EX_h_LPAREN_e_RPAREN_").lower_bound = parameters['lower']['h_lowerBound']
+            # model.reactions.get_by_id("EX_h2o_LPAREN_e_RPAREN_").lower_bound = -parameters['h2o_lowerBound']
+            # model.reactions.get_by_id("EX_pi_LPAREN_e_RPAREN_").lower_bound = -parameters['pi_lowerBound']
+            # model.reactions.get_by_id("EX_nh4_LPAREN_e_RPAREN_").lower_bound = -parameters['nh4_lowerBound']
+            # model.reactions.get_by_id("EX_no3_LPAREN_e_RPAREN_").lower_bound = -parameters['no3_lowerBound']
+            # model.reactions.get_by_id("EX_so4_LPAREN_e_RPAREN_").lower_bound = -parameters['so4_lowerBound']
+            # model.reactions.get_by_id("EX_o2_LPAREN_e_RPAREN_").lower_bound = -parameters['o2_lowerBound']
+            # # model.reactions.get_by_id("EX_o2_LPAREN_e_RPAREN_").upper_bound = -1
+
+            # model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").lower_bound = -parameters['ex_ac_lowerBound']
+            # model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").upper_bound = 0
 
         model.reactions.get_by_id("EX_starch_LPAREN_h_RPAREN_").lower_bound = 0
         model.reactions.get_by_id("EX_starch_LPAREN_h_RPAREN_").upper_bound = 0
@@ -98,10 +113,7 @@ def FileProcessing(parameters):
         model.reactions.get_by_id("FBAh").lower_bound = 0
         model.reactions.get_by_id("FBAh").upper_bound = 0
         model.reactions.get_by_id("H2Oth").upper_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_mixo").lower_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_mixo").upper_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_hetero").lower_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_hetero").upper_bound = 0
+        model.reactions.get_by_id("Biomass_Chlamy_mixo").lower_bound = 0
 
         LNA_sol = cobra.flux_analysis.parsimonious.optimize_minimal_flux(model)
         # print("pFBA status: ", LNA_sol.status)
@@ -360,16 +372,22 @@ def GetScriptsInput(txt_obj, compartment="u"):
         current_data = pd.DataFrame({'reaction':data['reaction'], 'value':data['value']})
         merge_file = pd.merge(reference_df, current_data, on="reaction")
         formulas = []
+        if len(compartment) > 1:
+            compartments = compartment.split('_')
+        else:
+            compartments = []
+            compartments.apped(compartment)
+        print(compartments)
         for row in merge_file.itertuples(index=True):
             reaction = row[1]
             species = row[2]
-            current_compartment = row[4]
+            current_compartment = str(row[4])
             mass = row[5]   #type == float
             role = row[6]   
             stoich = row[7] # type == float
             value = row[8]  # type == string
             mass_flux = float(mass) * float(value)
-            if current_compartment == compartment and abs(mass_flux) > 1e-6:
+            if current_compartment in compartments and abs(mass_flux) > 1e-6:
                 # if re.search("product", role):
                 #     a.append(reaction)
                 #     b.append(str(stoich)+" "+species)
