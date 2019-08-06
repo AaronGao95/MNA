@@ -215,7 +215,7 @@ def visualisation(request, file_id):
     # return top 10 figures
     img_obj = models.CycleImg.objects.filter(file=file_id)
     context['imgs'] = img_obj
-    GetImg_top_10(img_obj)
+    GetImg_top_10(file_id)
     # end
     return render(request, 'visualisation.html', context)
 
@@ -425,6 +425,7 @@ def ajax_upload(request):
             obj.file.save(file_name, file)
             obj.save()
             buffer.close()
+        print(file_id)
         GetImg_top_10(file_id)    
         url = "/decomp/visualisation/"+str(file_id)
         response = JsonResponse({'url':url, 'flag':True})

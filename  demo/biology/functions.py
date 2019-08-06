@@ -184,19 +184,19 @@ def FileProcessing(parameters):
 
 
 
-def GetImg_top_10(img_obj):
+def GetImg_top_10(file_id):
     # process scripts
+    img_obj = models.CycleImg.objects.filter(file_id=file_id)
     if img_obj.exists() and len(img_obj) == 10: # won't plot if 10 imgs were ploted before
         return False
-    file_id = img_obj.first().file_id
     file_obj = models.DecompositionFile.objects.get(file_id=file_id)
-    lines = []
     file = File(file_obj.file.file)
     with file.open() as file, mmap.mmap(file.fileno(),0,access=mmap.ACCESS_READ) as m:
         elements = []
         values = []
         ele_append = elements.append
         val_append = values.append
+        count = 0
         while True:
             line = m.readline().strip()
             line = line.split(b'/')
@@ -204,7 +204,8 @@ def GetImg_top_10(img_obj):
             value = float(line[1])
             ele_append(element)
             val_append(value)
-            if m.tell()==m.size():
+            count += 1
+            if m.tell()==m.size() or count >=10:
                 break
         # # sort file
         # a = list(zip(range(0,len(values)), values)) 
@@ -221,16 +222,16 @@ def GetImg_top_10(img_obj):
         # del elements, arr
         # # end sort file
         
-    elements = []
-    values = []
-    for line_inx in range(0, len(lines)):
+    for line_inx in range(0, count):
         img_id=file_id+'_'+str(line_inx)
-        if not models.CycleImg.objects.filter(img_id=img_id).exists():  # if this data is not in the database
-            elements.append(lines[line_inx]['cycle'])
-            values.append(lines[line_inx]['value'])
+        if models.CycleImg.objects.filter(img_id=img_id).exists():  # if this data is not in the database
+            del elements[line_inx]
+            del values[line_inx]
     inputs = zip(elements, values)
+    print(inputs)
     pool = Pool()
     res = pool.map(plot,inputs)
+    print(res)
     for i in range(0,len(res)):
         instance = res[i]['buffer']
         img = ImageFile(instance)
