@@ -69,16 +69,31 @@ def FileProcessing(parameters):
         model.reactions.get_by_id("PRISM_design_growth").upper_bound = 10
         model.reactions.get_by_id("PRISM_design_growth").lower_bound = 10
 
-        model.reactions.get_by_id("EX_h_LPAREN_e_RPAREN_").lower_bound = -parameters['h_lowerBound']
-        model.reactions.get_by_id("EX_h2o_LPAREN_e_RPAREN_").lower_bound = -parameters['h2o_lowerBound']
-        model.reactions.get_by_id("EX_pi_LPAREN_e_RPAREN_").lower_bound = -parameters['pi_lowerBound']
-        model.reactions.get_by_id("EX_nh4_LPAREN_e_RPAREN_").lower_bound = -parameters['nh4_lowerBound']
-        model.reactions.get_by_id("EX_no3_LPAREN_e_RPAREN_").lower_bound = -parameters['no3_lowerBound']
-        model.reactions.get_by_id("EX_so4_LPAREN_e_RPAREN_").lower_bound = -parameters['so4_lowerBound']
-        model.reactions.get_by_id("EX_o2_LPAREN_e_RPAREN_").lower_bound = -parameters['o2_lowerBound']
+        id_head = "EX_"
+        id_tail = "_LPAREN_e_RPAREN_"
 
-        model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").lower_bound = -parameters['ex_ac_lowerBound']
-        model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").upper_bound = 0
+          
+        for key, lower_value in parameters['lower'].items():
+            id = id_head + key.lower() + id_tail
+            if lower_value != 'null':
+                lower_value = float(lower_value)
+                model.reactions.get_by_id(id).lower_bound = lower_value
+            upper_value = parameters['upper'][key]
+            if upper_value != 'null':
+                upper_value = float(upper_value)
+                model.reactions.get_by_id(id).upper_bound = upper_value
+
+            # model.reactions.get_by_id("EX_h_LPAREN_e_RPAREN_").lower_bound = parameters['lower']['h_lowerBound']
+            # model.reactions.get_by_id("EX_h2o_LPAREN_e_RPAREN_").lower_bound = -parameters['h2o_lowerBound']
+            # model.reactions.get_by_id("EX_pi_LPAREN_e_RPAREN_").lower_bound = -parameters['pi_lowerBound']
+            # model.reactions.get_by_id("EX_nh4_LPAREN_e_RPAREN_").lower_bound = -parameters['nh4_lowerBound']
+            # model.reactions.get_by_id("EX_no3_LPAREN_e_RPAREN_").lower_bound = -parameters['no3_lowerBound']
+            # model.reactions.get_by_id("EX_so4_LPAREN_e_RPAREN_").lower_bound = -parameters['so4_lowerBound']
+            # model.reactions.get_by_id("EX_o2_LPAREN_e_RPAREN_").lower_bound = -parameters['o2_lowerBound']
+            # # model.reactions.get_by_id("EX_o2_LPAREN_e_RPAREN_").upper_bound = -1
+
+            # model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").lower_bound = -parameters['ex_ac_lowerBound']
+            # model.reactions.get_by_id("EX_ac_LPAREN_e_RPAREN_").upper_bound = 0
 
         model.reactions.get_by_id("EX_starch_LPAREN_h_RPAREN_").lower_bound = 0
         model.reactions.get_by_id("EX_starch_LPAREN_h_RPAREN_").upper_bound = 0
@@ -98,10 +113,7 @@ def FileProcessing(parameters):
         model.reactions.get_by_id("FBAh").lower_bound = 0
         model.reactions.get_by_id("FBAh").upper_bound = 0
         model.reactions.get_by_id("H2Oth").upper_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_mixo").lower_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_mixo").upper_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_hetero").lower_bound = 0
-        #model.reactions.get_by_id("Biomass_Chlamy_hetero").upper_bound = 0
+        model.reactions.get_by_id("Biomass_Chlamy_mixo").lower_bound = 0
 
         LNA_sol = cobra.flux_analysis.parsimonious.optimize_minimal_flux(model)
         # print("pFBA status: ", LNA_sol.status)
@@ -175,12 +187,12 @@ def FileProcessing(parameters):
                 parameters['csv_file_obj'].download_file.save(csv_file_hash_id+"."+"csv", file_csv)
                 parameters['csv_file_obj'].save()
         except Exception as exp:
-            return False
+            return (False, str(exp))
 
-        return True
+        return (True, None)
     except Exception as e:
-        print(e)
-        return False
+        e = str(e)
+        return (False, e)
 
 
 
@@ -190,8 +202,8 @@ def GetImg_top_10(file_id):
     if img_obj.exists() and len(img_obj) == 10: # won't plot if 10 imgs were ploted before
         return False
     file_obj = models.DecompositionFile.objects.get(file_id=file_id)
-    file = File(file_obj.file.file)
-    with file.open() as file, mmap.mmap(file.fileno(),0,access=mmap.ACCESS_READ) as m:
+    file = File(file_obj.file)
+    with file as file, mmap.mmap(file.fileno(),0,access=mmap.ACCESS_READ) as m:
         elements = []
         values = []
         ele_append = elements.append
@@ -221,17 +233,17 @@ def GetImg_top_10(file_id):
         #     lines.append({'cycle':element, 'value':value})
         # del elements, arr
         # # end sort file
-        
+    pending_del = []
     for line_inx in range(0, count):
         img_id=file_id+'_'+str(line_inx)
         if models.CycleImg.objects.filter(img_id=img_id).exists():  # if this data is not in the database
-            del elements[line_inx]
-            del values[line_inx]
+            pending_del.append(line_inx)
+    for i in sorted(pending_del, reverse=True):
+        del elements[i]
+        del values[i]
     inputs = zip(elements, values)
-    print(inputs)
     pool = Pool()
     res = pool.map(plot,inputs)
-    print(res)
     for i in range(0,len(res)):
         instance = res[i]['buffer']
         img = ImageFile(instance)
@@ -278,8 +290,8 @@ def plot(args):
     return res
     
 def SearchImg(name, obj, upper=float('nan'), lower=float('nan')):
-    decomp_file = File(obj.file.file)
-    with decomp_file.open() as file,\
+    decomp_file = File(obj.file)
+    with decomp_file as file,\
         mmap.mmap(file.fileno(),0,access=mmap.ACCESS_READ) as m:
         elements = []
         values = []
@@ -341,6 +353,7 @@ def SearchImg(name, obj, upper=float('nan'), lower=float('nan')):
     # plt.close()
     
 def GetScriptsInput(txt_obj, compartment="u"):
+
     with open("./static_files/reference.csv", "rb") as ref_file: # open reference file with "rb" in iobuffer
         reference_df = pd.read_csv(ref_file)    # transform reference file into datafram
         txt_file = txt_obj.download_file
@@ -360,24 +373,20 @@ def GetScriptsInput(txt_obj, compartment="u"):
         current_data = pd.DataFrame({'reaction':data['reaction'], 'value':data['value']})
         merge_file = pd.merge(reference_df, current_data, on="reaction")
         formulas = []
+        if len(compartment) > 1:
+            compartments = compartment.split('_')
+        else:
+            compartments = [compartment]
         for row in merge_file.itertuples(index=True):
             reaction = row[1]
             species = row[2]
-            current_compartment = row[4]
+            current_compartment = str(row[4])
             mass = row[5]   #type == float
             role = row[6]   
             stoich = row[7] # type == float
             value = row[8]  # type == string
             mass_flux = float(mass) * float(value)
-            if current_compartment == compartment and abs(mass_flux) > 1e-6:
-                # if re.search("product", role):
-                #     a.append(reaction)
-                #     b.append(str(stoich)+" "+species)
-                #     c.append(mass_flux)
-                # else:
-                #     a.append(str(stoich)+" "+species)
-                #     b.append(reaction)
-                #     c.append(mass_flux)
+            if current_compartment in compartments and abs(mass_flux) > 1e-6:
                 if re.search("product", role):
                     formula = "%s%s %s %s %s%s%s%s"%('"',reaction,"->",str(stoich),species,'";',str(mass_flux),';')
                     formulas.append(formula)
@@ -385,9 +394,8 @@ def GetScriptsInput(txt_obj, compartment="u"):
                     formula = "%s%s %s %s %s%s%s%s"%('"',str(stoich),species,"->",reaction,'";',str(mass_flux),';')
                     formulas.append(formula)
         df = pd.DataFrame({"index":formulas})
-        # df = pd.DataFrame({'a':a,'b':b,'c':c})
+
     buffer = StringIO()
     df.to_csv(buffer, index=False, header=False)
     buffer.seek(0)
     return buffer
-    # df.to_csv("/Users/aarongao/Desktop/Decomposition_scripts/compartments/h/lna/chlamydomonas_lna.csv",index=False,header=False)

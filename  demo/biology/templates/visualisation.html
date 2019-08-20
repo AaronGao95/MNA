@@ -117,7 +117,7 @@ $(document).ready(function () {
     })
     $("form").on('submit', function () {
         var upper = parseFloat($("#upper").val());
-        var lower = parwseFloat($("#lower").val());
+        var lower = parseFloat($("#lower").val());
         if (lower>upper) {
             $("#myAlert").show("fast");
             return false;            
@@ -137,7 +137,7 @@ $(document).ready(function () {
             var upper = parseFloat($("#upper").val());
             var lower = parseFloat($("#lower").val()); 
             var file = $("form").attr("action").toString().split("/")[3];
-            if (lower!="" && upper!="" && lower>upper) {
+            if (lower!=NaN && upper!=NaN && lower>upper) {
                 $("#myAlert").show("fast");
                 $("#matched-num").html("...");
             }else{

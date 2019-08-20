@@ -1,6 +1,8 @@
 from django.contrib import admin
 from biology.models import UploadFile, DownloadFile, CycleImg, InputParams, DecompositionFile
 
+
+admin.site.site_header = "MNA Administration"
 # Register your models here.
 class InputParamsInline(admin.TabularInline):
     model = InputParams

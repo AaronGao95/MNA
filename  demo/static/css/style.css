@@ -42,7 +42,7 @@ nav a{
 }
 @media only screen and (min-width: 768px){
 .navbar-nav > .nav-item > .nav-link.active{
-    border-bottom: 3px solid #1A73E8;
+    border-bottom: 3px solid #1A73E8 !important;
 }
 }
 
@@ -189,7 +189,7 @@ footer a{
 /* 404 */
   #notfound {
     position: relative;
-    height: 100vh;
+    height: 82vh;
   }
   
   #notfound .notfound {
@@ -343,11 +343,23 @@ footer a{
 #scripts-guidance{
     margin-bottom: 1rem;
 }
+#scripts-guidance .strong-text{
+    overflow: auto !important; 
+    display: inline-block;
+    vertical-align: top;
+}
+@media only screen and (max-width: 520px){
+    #scripts-guidance > ul{
+        padding-left: 0 !important;
+    }
+}
 #scripts-guidance .code{
     background-color: #292a35;
     color: white;
     margin-bottom: 1rem;
-    padding-left: .5rem;
+    padding: 0 .5rem;
+    overflow: auto;
+    text-align: left;
 }
 
 #guidance-contents-list{

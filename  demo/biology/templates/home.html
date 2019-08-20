@@ -19,10 +19,10 @@
                 <strong>Error!</strong> Please select a <strong>XML</strong> as input!
             </div>
             
-            {% if exception %}
+            {% if exception_status%}
             <div class="alert alert-danger" id="myExcAlert">
                 <button class="close" type="button">&times;</button>
-                <strong>Errors Occur When Processing This File</strong>
+                <strong>Errors Occur When Processing This File: {{exception}}</strong>
             </div>
             {% endif %}
         </div>
@@ -50,56 +50,65 @@
         <div class="form-group">
             <div class="input-group mb-2">
                 <span class="note-head">The Exchange Fluxes</span>
-                <span class="note text-muted font-italic">Note: Positive and Negative values indicate Incoming and Outgoing flux respectively.</span>
+                    <span class="note text-muted font-italic">Note: Positive and Negative values indicate Outgoing and Incoming flux respectively.</span>
+                    <span class="note text-muted font-italic">For each element, the Left input pannel indicates the Lower Bound while the right one indicating the Upper Bound.</span>
             </div>
             <div class="input-group" id="flux-input">
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">External Acetate</span>
                     </div>
-                    <input class="inputNum" type="number" name="ex_ac_lowerBound" min="-1000" step="0.001" value="0" max="1000"/>
+                    <input class="inputNum" type="number" name="ex_ac_lowerBound" min="-1000" step="0.001" value="0" max="1000" id="ex_ac_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="ex_ac_upperBound" min="-1000" step="0.001" value="" max="1000" id="ex_ac_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">H</span>
                     </div>
-                    <input class="inputNum" type="number" name="h_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="h_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="H_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="h_upperBound" min="-1000" step="0.001" value="" max="1000" id="H_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">H<sub>2</sub>O</span>
                     </div>
-                    <input class="inputNum" type="number" name="h2o_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="h2o_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="h20_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="h2o_upperBound" min="-1000" step="0.001" value="" max="1000" id="h20_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">PI</span>
                     </div>
-                    <input class="inputNum" type="number" name="pi_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="pi_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="pi_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="pi_upperBound" min="-1000" step="0.001" value="" max="1000" id="pi_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">NH<sub>4</sub></span>
                     </div>
-                    <input class="inputNum" type="number" name="nh4_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="nh4_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="nh4_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="nh4_upperBound" min="-1000" step="0.001" value="" max="1000" id="nh4_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">NO<sub>3</sub></span>
                     </div>
-                    <input class="inputNum" type="number" name="no3_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="no3_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="no3_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="no3_upperBound" min="-1000" step="0.001" value="" max="1000" id="no3_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">SO<sub>4</sub></span>
                     </div>
-                    <input class="inputNum" type="number" name="so4_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="so4_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="so4_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="so4_upperBound" min="-1000" step="0.001" value="" max="1000" id="so4_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
                 <div class="input-group-element">
                     <div class="input-group-prepend">
                         <span class="input-group-text">O<sub>2</sub></span>
                     </div>
-                    <input class="inputNum" type="number" name="o2_lowerBound" min="-1000" step="0.001" value="10" max="1000"/>
+                    <input class="inputNum" type="number" name="o2_lowerBound" min="-1000" step="0.001" value="-10" max="1000" id="o2_lower" data-toggle="popover" data-placement="top" data-content="Lower Bound"/>
+                    <input class="inputNum" type="number" name="o2_upperBound" min="-1000" step="0.001" value="" max="1000" id="o2_upper" data-toggle="popover" data-placement="top" data-content="Upper Bound"/>
                 </div>
             </div>
         </div>
@@ -122,6 +131,7 @@
 </body>
 <script>
     $(document).ready(function () {
+        $("#home").addClass("active");
         //get the file name
         var fileName = $('#customFile').val();
         //replace the "Select a file" label
@@ -144,7 +154,11 @@
                 $(this).next('.custom-file-label').text(fileName);
             }
         })
-        $("#home").addClass("active");
+        $("#flux-input input").popover({
+            trigger: 'focus'
+        });
+
+        
     });
 
     $(document).ready(function () {
@@ -169,15 +183,22 @@
     //end
     
     function validateFile() {
-        //validate numeric inputs
-        var nums = document.getElementsByClassName('inputNum');
-            for (i=0; i < nums.length; i++){
-                if (nums[i].value == ''){
-                    alert('Input cannot be empty!');
+        // validate numeric inputs
+        var group = document.getElementById('flux-input').getElementsByClassName('input-group-element');
+        for (i=0; i < group.length; i++){
+            var inputs = group[i].getElementsByTagName("input");
+            var lower = inputs[0].value;
+            var upper = inputs[1].value;
+            if (lower != "" && upper != ""){
+                lower = parseFloat(lower);
+                upper = parseFloat(upper);
+                if (lower > upper){
+                    alert('Lower Bound Should Be Smaller Than Upper Bound!');
                     return false;
                 }
             }
-        //end
+        }
+        // end
         var x = document.getElementById("customFile").value;
         var myAlert = document.getElementById("myAlert");
         if (x == '' || x == undefined){
@@ -201,5 +222,9 @@
         }
         return false;
     }
+
+
+
+
 </script>
 {% endblock  %}

@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^download_scripts/(?P<os>.{1})/$(?i)', views.download_scripts, name='download_scripts'),
     url(r'^ajax_uplaod/$(?i)', views.ajax_upload, name="ajax_upload"),
     url(r'^generate_input/(?P<input_hash_id>.{32})/$(?i)', views.generate_input, name="generate_input"),
-
+    url(r'404', views.handler_404),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'views.handler404'

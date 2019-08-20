@@ -31,14 +31,14 @@ class InputParams(models.Model):
     def __str__(self):
         return "Inputs and FBA Results of " + self.upload_file_name
     GC = models.CharField(max_length=255)  
-    EA = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    H = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    H2O = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    PI = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    NH4 = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    NO3 = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    SO4 = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
-    O2 = models.FloatField(validators=[MinValueValidator(-1000), MaxValueValidator(1000)])  
+    EA = models.CharField(max_length=255) 
+    H = models.CharField(max_length=255)  
+    H2O = models.CharField(max_length=255)
+    PI = models.CharField(max_length=255)
+    NH4 = models.CharField(max_length=255)  
+    NO3 = models.CharField(max_length=255)  
+    SO4 = models.CharField(max_length=255)  
+    O2 = models.CharField(max_length=255)  
     input_hash_id = models.CharField(max_length=255, primary_key=True)    # hash value of input file and inputs
     upload_file = models.ForeignKey(UploadFile, on_delete=models.CASCADE)
     upload_file_name = models.CharField(max_length=255)

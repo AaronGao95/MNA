@@ -14,7 +14,7 @@ import re, base64, json
 from django.core.files.images import ImageFile
 from django.core.files import File
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage, InvalidPage
-
+import time
 
 def home(request):
     context = {}
@@ -23,14 +23,31 @@ def home(request):
         form = models.UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             GC = str(request.POST.get("growthCondition"))
-            EA= float(request.POST.get("ex_ac_lowerBound"))
-            H = float(request.POST.get("h_lowerBound"))
-            H2O = float(request.POST.get("h2o_lowerBound"))
-            PI = float(request.POST.get("pi_lowerBound"))
-            NH4 = float(request.POST.get("nh4_lowerBound"))
-            NO3 = float(request.POST.get("no3_lowerBound"))
-            SO4= float(request.POST.get("so4_lowerBound"))
-            O2 = float(request.POST.get("o2_lowerBound"))
+            lower ={}
+            upper = {}
+            lower['AC'] = request.POST.get("ex_ac_lowerBound")
+            upper['AC']= request.POST.get("ex_ac_upperBound")
+            lower['H'] = request.POST.get("h_lowerBound")
+            upper['H'] = request.POST.get("h_upperBound")
+            lower['H2O'] = request.POST.get("h2o_lowerBound")
+            upper['H2O'] = request.POST.get("h2o_upperBound")
+            lower['PI'] = request.POST.get("pi_lowerBound")
+            upper['PI'] = request.POST.get("pi_upperBound")
+            lower['NH4'] = request.POST.get("nh4_lowerBound")
+            upper['NH4'] = request.POST.get("nh4_upperBound")
+            lower['NO3'] = request.POST.get("no3_lowerBound")
+            upper['NO3'] = request.POST.get("no3_upperBound")
+            lower['SO4'] = request.POST.get("so4_lowerBound")
+            upper['SO4']= request.POST.get("so4_upperBound")
+            lower['O2'] = request.POST.get("o2_lowerBound")
+            upper['O2'] = request.POST.get("o2_upperBound")
+            ex_fluxes = {}
+            for key in lower.keys():
+                if lower[key] == '':
+                    lower[key] = 'null'
+                if upper[key] == '':
+                    upper[key] = 'null'
+                ex_fluxes[key] = "{}{}{}".format(str(lower[key]),',',str(upper[key]))
             # upload file
             obj = form.save(commit=False)
             hash_id = md5File(obj.file)
@@ -43,14 +60,21 @@ def home(request):
             # upload file end
 
             # check the md5 of upload file and inputs exists or not
-            inputs = (hash_id,GC,EA,H,H2O,PI,NH4,NO3,SO4,O2)
-            inputs_str = ''
-            for i in inputs:
-                inputs_str = inputs_str + str(i) + '?'
+            inputs_str = hash_id + '?' + GC
+            for value in ex_fluxes.values():
+                inputs_str = inputs_str + '?' + value
             input_hash_id = md5String(str(inputs_str))
             if not models.InputParams.objects.filter(input_hash_id=input_hash_id).exists() \
                 or not models.DownloadFile.objects.filter(input_params_id=input_hash_id).exists():
-                input_obj = models.InputParams(upload_file_id=hash_id,GC=GC,EA=EA,H=H,H2O=H2O,PI=PI,NH4=NH4,NO3=NO3,SO4=SO4,O2=O2,\
+                EA=ex_fluxes['AC']
+                H=ex_fluxes['H']
+                H2O=ex_fluxes['H2O']
+                PI=ex_fluxes['PI']
+                NH4=ex_fluxes['NH4']
+                NO3=ex_fluxes['NO3']
+                SO4=ex_fluxes['SO4']
+                O2=ex_fluxes['O2']
+                input_obj = models.InputParams(upload_file_id=hash_id,GC=GC,EA=EA,H=H,H2O=H2O,PI=PI,NH4=NH4,NO3=NO3,O2=O2,SO4=SO4,\
                     input_hash_id=input_hash_id,upload_file_name=obj.file.name.split('/')[-1])
                 txt_file_hash_id = md5String(input_hash_id+".txt")   
                 csv_file_hash_id = md5String(input_hash_id+'.csv') 
@@ -64,21 +88,16 @@ def home(request):
                 params['csv_file_obj'] = models.DownloadFile(input_params_id=input_hash_id, download_file_hash_id=csv_file_hash_id)
                 params['file_name'] = obj.file.name.split('/')[-1]
                 params['growth_condition'] = GC
-                params['ex_ac_lowerBound'] = EA
-                params['h_lowerBound'] = H
-                params['h2o_lowerBound'] = H2O
-                params['pi_lowerBound'] = PI
-                params['nh4_lowerBound'] = NH4
-                params['no3_lowerBound'] = NO3
-                params['so4_lowerBound'] = SO4
-                params['o2_lowerBound'] = O2
+                params['lower'] = lower
+                params['upper'] = upper
 
-                status = FileProcessing(params) # download_obj will be saved in this function
+                status, exception = FileProcessing(params) # download_obj will be saved in this function
                 if status == False:
                     form = models.UploadFileForm()
                     if cookie != None:
                         context['file'] = cookie
-                        context['exception'] = True
+                        context['exception_status'] = True
+                        context['exception'] = exception
                         context['form'] = form
                     response = render(request, 'home.html', context)
                     return response
@@ -162,42 +181,21 @@ def decomposition(request, file_id):
     if cookie != None:
         context["file"]['hash_id'] = cookie["hash_id"]
         context["file"]['file_name'] = None
-    file = File(obj.first().file.file)
-    with file.open() as file, mmap.mmap(file.fileno(),0,access=mmap.ACCESS_READ) as m:
-        elements = []
-        values = []
-        ele_append = elements.append
-        val_append = values.append
+    file = File(obj.first().file)
+    context['lines'] = []
+
+    # return top 10 lines
+    with file as file, mmap.mmap(file.fileno(),0,access=mmap.ACCESS_READ) as m:
+        count = 0
         while True:
             line = m.readline().strip()
             line = line.split(b'/')
             element = line[0].decode('utf-8').split()
             value = float(line[1])
-            ele_append(element)
-            val_append(value)
-            if m.tell()==m.size():
+            context['lines'].append({'cycle':element, 'value':value})
+            count += 1 
+            if m.tell()==m.size() or count == 10:
                 break
-
-    # sort file
-    a = list(zip(range(0,len(values)), values)) 
-    del values
-    dtype = [('eles_inx', np.int_),('vals', np.float_)]
-    arr = np.array(a, dtype=dtype)
-    arr = np.sort(arr, order='vals')
-    context['lines'] = []
-    arr = arr[-10:] # top ten
-    arr = arr[::-1] # reverse array
-    for i in arr:
-        element = elements[i['eles_inx']]
-        value = i['vals']
-        context['lines'].append({'cycle':element, 'value':value})
-    del elements, arr
-    # end sort file
-
-    # cookie = get_cookie(request)
-    # if cookie != None:
-    #     context['cookie'] = cookie
-
     return render(request, 'decomposition.html', context)
 
 
@@ -319,7 +317,12 @@ def generate_input(request, input_hash_id):
 
 
 def handler_404(request):
-    return render(request, '404.html')
+    cookie = get_cookie(request)
+    context = {'file':{}}
+    if cookie != None:
+        context["file"]['hash_id'] = cookie["hash_id"]
+        context["file"]['decomp_file_id'] = cookie["decomp_file_id"]
+    return render(request, '404.html', context)
 
 def ajax_search(request):
     if request.method == "GET":
@@ -339,6 +342,7 @@ def ajax_search(request):
         return JsonResponse(data)
 
 def ajax_view(request):
+    s = time.time()
     data = {}
     if request.method == "GET":
         elements = request.GET.get("elements")
@@ -347,11 +351,13 @@ def ajax_view(request):
             raise Http404
         elements = elements.split()    # replace white-space
         res = plot((elements,value))
+        print("len:"+str(len(elements)))
         buffer = res['buffer']
         contents = base64.b64encode(buffer.getvalue()).decode()
         buffer.close()
         img = "data:image/png;base64," + contents
         data['img'] = img
+    print("time:"+str(time.time()-s))
     return JsonResponse(data)
 
 def search_download(request):
@@ -425,12 +431,13 @@ def ajax_upload(request):
             obj.file.save(file_name, file)
             obj.save()
             buffer.close()
-        print(file_id)
-        GetImg_top_10(file_id)    
+            # end
+        ss = time.time()
+        GetImg_top_10(file_id) 
         url = "/decomp/visualisation/"+str(file_id)
         response = JsonResponse({'url':url, 'flag':True})
         response.set_cookie("decomp_file_id", str(file_id), expires=60*60*24*30)
-        response.set_cookie("decomp_file_name", file_name, expires=60*60*24*30)
+        response.set_cookie("decomp_file_name", file_name, expires=60*60*24*30)  
     return response
 
 def download_scripts(request, os):
@@ -438,7 +445,7 @@ def download_scripts(request, os):
     # windows os==1
     import os as o
     print(o.path.dirname(__file__))
-    if int(os) == 0:
+    if int(os) == 1:
         scripts = open("./static_files/Decomposition_Scripts_Windows.zip", "rb")
     else:
         scripts = open("./static_files/Decomposition_Scripts_Linux_Mac.zip", "rb")      
