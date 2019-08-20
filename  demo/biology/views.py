@@ -14,7 +14,6 @@ import re, base64, json
 from django.core.files.images import ImageFile
 from django.core.files import File
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage, InvalidPage
-import time
 
 def home(request):
     context = {}
@@ -443,8 +442,6 @@ def ajax_upload(request):
 def download_scripts(request, os):
     # mac/linux os==0
     # windows os==1
-    import os as o
-    print(o.path.dirname(__file__))
     if int(os) == 1:
         scripts = open("./static_files/Decomposition_Scripts_Windows.zip", "rb")
     else:

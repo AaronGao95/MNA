@@ -376,7 +376,13 @@ def GetScriptsInput(txt_obj, compartment="u"):
         if len(compartment) > 1:
             compartments = compartment.split('_')
         else:
+<<<<<<< HEAD
             compartments = [compartment]
+=======
+            compartments = []
+            compartments.apped(compartment)
+        print(compartments)
+>>>>>>> 432801fa34496c3fb531dcb5603ca2314c3d93cf
         for row in merge_file.itertuples(index=True):
             reaction = row[1]
             species = row[2]
@@ -387,6 +393,17 @@ def GetScriptsInput(txt_obj, compartment="u"):
             value = row[8]  # type == string
             mass_flux = float(mass) * float(value)
             if current_compartment in compartments and abs(mass_flux) > 1e-6:
+<<<<<<< HEAD
+=======
+                # if re.search("product", role):
+                #     a.append(reaction)
+                #     b.append(str(stoich)+" "+species)
+                #     c.append(mass_flux)
+                # else:
+                #     a.append(str(stoich)+" "+species)
+                #     b.append(reaction)
+                #     c.append(mass_flux)
+>>>>>>> 432801fa34496c3fb531dcb5603ca2314c3d93cf
                 if re.search("product", role):
                     formula = "%s%s %s %s %s%s%s%s"%('"',reaction,"->",str(stoich),species,'";',str(mass_flux),';')
                     formulas.append(formula)
